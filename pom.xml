@@ -18,7 +18,7 @@
     </properties>
 
     <scm>
-        <developerConnection>scm:git:https://github.com/bckfnn/vertx-action.git</developerConnection>
+        <developerConnection>scm:git:https://github.com/bckfnn/actioner.git</developerConnection>
         <tag>v0.0.1</tag>
     </scm>
 
@@ -26,7 +26,7 @@
         <repository>
             <id>bintray-bckfnn-maven</id>
             <name>bckfnn-maven</name>
-            <url>https://api.bintray.com/maven/bckfnn/maven/vertx-action/;publish=1</url>
+            <url>https://api.bintray.com/maven/bckfnn/maven/actioner/;publish=1</url>
         </repository>
     </distributionManagement>
                 

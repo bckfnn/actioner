@@ -102,7 +102,8 @@ public class Main extends AbstractVerticle {
 
     /**
      * Initialize.
-     * @throws Exception
+     * @param future the future to signal when done
+     * @throws Exception if an action class can not be loaded
      */
     @Override
     public void start(Future<Void> future) throws Exception {
@@ -230,7 +231,7 @@ public class Main extends AbstractVerticle {
 
     /**
      * Override to provide additional configuration of the Router.
-     * @param ctx the RoutingContext.
+     * @param router the routing.
      */
     protected void configRouter(Router router) {
 

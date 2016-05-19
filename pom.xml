@@ -100,7 +100,7 @@
                 <artifactId>jgitflow-maven-plugin</artifactId>
                 <version>1.0-m5.1</version>
                 <configuration>
-                    <keepBranch>true</keepBranch>
+                    <!-- keepBranch>true</keepBranch-->
                     <autoVersionSubmodules>true</autoVersionSubmodules>
                     <!-- see goals wiki page for configuration options -->
                 </configuration>

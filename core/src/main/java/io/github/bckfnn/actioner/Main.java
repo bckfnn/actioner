@@ -80,14 +80,11 @@ public class Main extends AbstractVerticle {
 
     protected Config config;
     private Config translations;
-    //private Map<String, Menus> menus;
     private ActionRouter actionRouter = new ActionRouter();
-    //private MenuLoader menuLoader = new MenuLoader();
     private SessionStore sessionStore;
     private AuthProvider authProvider;
     private HttpServer server;
 
-    private String translationFile;
 
     public Main() {
         LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
@@ -115,14 +112,7 @@ public class Main extends AbstractVerticle {
         if (config.hasPath("translations")) {
             translations = ConfigFactory.load(config.getString("translations"));
         }
-/*
-        menus = config.getStringList("app.menus").stream().collect(
-                Collectors.toMap(l -> l, l -> new Menus(ConfigFactory.load(l))));
 
-        config.getStringList("app.contextMenus").stream().forEach(m -> {
-            menuLoader.loadMenus(m);
-        });
-*/
         log.debug("config loaded");
 
         boolean develop = config.getBoolean("develop");
@@ -143,16 +133,14 @@ public class Main extends AbstractVerticle {
             ctx.put(Vertx.class.getName(), vertx);
             ctx.put(Router.class.getName(), router);
             ctx.put(ActionRouter.class.getName(), actionRouter);
-            //ctx.put(MenuLoader.class.getName(), menuLoader);
             ctx.put(Config.class.getName(), config);
+
             ctx.put("ctx", ctx);
             ctx.put("startTime", System.currentTimeMillis());
             ctx.put("translations", translations);
             ctx.put("contextRoot", contextRoot);
-            //ctx.put(Persistor.class.getName(), persistor);
-            //ctx.put(Schema.class.getName(), schema);
             ctx.put(AuthProvider.class.getName(), authProvider);
-            //ctx.data().putAll(menus);
+
             ctx.response().putHeader("X-Frame-Options", "deny");
             configContext(ctx);
             log.debug("request: {}", ctx.request().path());
@@ -195,27 +183,19 @@ public class Main extends AbstractVerticle {
         router.route().failureHandler(ctx -> {
             if (ctx.failed() && ctx.failure() != null) {
                 log.error("Error handler", ctx.failure());
-                //ctx.failure().printStackTrace();
             }
             ErrorHandler.create(develop).handle(ctx);
         });
 
         BridgeOptions opts = new BridgeOptions()
-                .addInboundPermitted(new PermittedOptions()
-                    .setAddress("importList"))
-                .addOutboundPermitted(new PermittedOptions()
-                    .setAddress("importList"));
+                .addInboundPermitted(new PermittedOptions().setAddress("importList"))
+                .addOutboundPermitted(new PermittedOptions().setAddress("importList"));
         SockJSHandler ebHandler = SockJSHandler.create(vertx).bridge(opts);
         router.route("/eventbus/*").handler(ebHandler);
 
         HttpServerOptions options = new HttpServerOptions();
         options.setPort(config.getInt("port"));
-/*
-        TimerContext timerContext = new TimerContext(vertx);
-        timerContext.put(Persistor.class.getName(), persistor);
-        timerContext.put(Config.class.getName(), config);
-        startTimers(timerContext);
-*/
+
         server = vertx.createHttpServer(options);
         server.requestHandler(router::accept).listen(res -> {
             if (res.failed()) {
@@ -283,11 +263,14 @@ public class Main extends AbstractVerticle {
             System.exit(1);
         }
 
+
         System.setProperty("appConfig", configName);
         System.setProperty("vertx.logger-delegate-factory-class-name", "io.vertx.core.logging.SLF4JLogDelegateFactory");
         System.setProperty("vertx.disableFileCaching", "true");
 
         Config config = loadConfig();
+        boolean develop = config.getBoolean("develop");
+
         checkEndorsed(config, args);
 
         VertxOptions vertxOptions = new VertxOptions();
@@ -321,7 +304,7 @@ public class Main extends AbstractVerticle {
          */
         DeploymentOptions opts = new DeploymentOptions();
         opts.setInstances(config.getInt("instances"));
-        if (config.getBoolean("develop")) {
+        if (develop) {
             opts.setIsolatedClasses(config.getStringList("isolatedClasses"));
         }
 
@@ -329,7 +312,7 @@ public class Main extends AbstractVerticle {
 
 
         Function<Handler<Vertx>, Void> deploy = h -> {
-            if (config.getBoolean("develop")) {
+            if (develop) {
                 opts.setIsolationGroup("ethics" + System.currentTimeMillis());
             }
             vertx.deployVerticle(verticle.getName(), opts, res -> {
@@ -344,7 +327,7 @@ public class Main extends AbstractVerticle {
         };
 
         deploy.apply(result);
-        if (config.getBoolean("develop")) {
+        if (develop) {
             redeploy(() -> {
                 vertx.undeploy(deploymentId.get(), r -> {
                     deploy.apply(h -> {
@@ -363,22 +346,18 @@ public class Main extends AbstractVerticle {
         Files.walkFileTree(dir, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult preVisitDirectory(Path file, BasicFileAttributes attrs) throws IOException {
-                //System.out.println(file);;
                 file.register(watcher, StandardWatchEventKinds.ENTRY_MODIFY);
                 return FileVisitResult.CONTINUE;
             }
         });
-        //System.out.println("walked");
 
         for (;;) {
             WatchKey key = watcher.take();
             key.reset();
             while ((key = watcher.poll(500, TimeUnit.MILLISECONDS)) != null) {
-                //System.out.println("poll");
                 for (WatchEvent<?> event: key.pollEvents()) {
                     @SuppressWarnings("unused")
                     WatchEvent.Kind<?> kind = event.kind();
-                    //System.out.println("found " + key + " " + kind + " " + event.context() + " " + key.watchable() + " " + event.count());
                 }
 
                 key.reset();

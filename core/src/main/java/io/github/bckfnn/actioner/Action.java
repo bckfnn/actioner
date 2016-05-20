@@ -69,6 +69,7 @@ public class Action implements Handler<RoutingContext> {
         this.permission = get.permission();
         this.order = get.order();
         init(router.get(url));
+        init(router.head(url));
     }
 
     public void decorate(Router router, Class<?> actionClass, String name, String contextRoot, Post post) {

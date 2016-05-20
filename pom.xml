@@ -8,7 +8,7 @@
     <packaging>pom</packaging>
 
     <name>actioner - action controller for vertx</name>
-    <version>0.1.2</version>
+    <version>0.1.3-SNAPSHOT</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

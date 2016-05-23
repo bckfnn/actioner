@@ -183,7 +183,7 @@ public class Action implements Handler<RoutingContext> {
             // Already logged in, just authorise
             authorize(ctx);
         } else {
-            Config config  = ctx.get("config");
+            Config config  = ctx.get(Config.class.getName());
 
             // Now redirect to the login url - we'll get redirected back here after successful login
             session.put(config.getString("returnURLParam"), ctx.request().path());

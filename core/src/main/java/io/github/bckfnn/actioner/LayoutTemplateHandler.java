@@ -30,9 +30,12 @@ public class LayoutTemplateHandler implements Handler<RoutingContext> {
             ctx.next();
             return;
         }
-        ctx.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html");
+        ctx.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html; charset=utf-8");
         ctx.response().setChunked(true);
-
+        if (ctx.request().method().equals("HEAD")) {
+            ctx.response().end();
+            return;
+        }
         VertxOutput out = new VertxOutput(ctx.response());
         out.endHandler($ -> {
             System.out.println("end");

@@ -46,6 +46,7 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -54,6 +55,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.dropwizard.DropwizardMetricsOptions;
 import io.vertx.ext.dropwizard.Match;
@@ -70,6 +72,7 @@ import io.vertx.ext.web.handler.UserSessionHandler;
 import io.vertx.ext.web.handler.sockjs.BridgeOptions;
 import io.vertx.ext.web.handler.sockjs.PermittedOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
+import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 
 /**
@@ -116,6 +119,8 @@ public class Main extends AbstractVerticle {
 
         log.debug("config loaded");
 
+        initialize();
+        
         boolean develop = config.getBoolean("develop");
         String contextRoot = config.getString("webserver.contextRoot");
 
@@ -123,7 +128,7 @@ public class Main extends AbstractVerticle {
         //Persistor persistor = makePersistor(config, schema);
 
         if (config.hasPath("groups")) {
-            //authProvider = new DbAuthProvider(persistor, ConfigFactory.load(config.getString("groups")));
+            authProvider = new DbAuthProvider(this, ConfigFactory.load(config.getString("groups")));
         }
 
         Router router = Router.router(vertx);
@@ -149,7 +154,7 @@ public class Main extends AbstractVerticle {
         });
 
         if (authProvider != null) {
-            //sessionStore = new PersistentLocalSessionStore(vertx, LocalSessionStore.DEFAULT_SESSION_MAP_NAME, LocalSessionStore.DEFAULT_REAPER_INTERVAL, config.getString("sessionStorage")); //LocalSessionStore.create(vertx);
+            sessionStore = new PersistentLocalSessionStore(vertx, LocalSessionStore.DEFAULT_SESSION_MAP_NAME, LocalSessionStore.DEFAULT_REAPER_INTERVAL, config.getString("sessionStorage")); //LocalSessionStore.create(vertx);
         }
 
         router.route().handler(CookieHandler.create());
@@ -237,6 +242,9 @@ public class Main extends AbstractVerticle {
 
     }
 
+    protected void initialize() throws Exception {
+        
+    }
 /*
     protected Schema makeSchema() throws Exception {
         return new Schema();
@@ -249,11 +257,11 @@ public class Main extends AbstractVerticle {
     protected Persistor makePersistor(Config config, Schema schema) throws Exception {
         return null;
     }
-
-    protected void loadPrincipal(Persistor persistor, String loginId, String password, Handler<AsyncResult<JsonObject>> handler) {
+*/
+    protected void loadPrincipal(String loginId, String password, Handler<AsyncResult<JsonObject>> handler) {
         handler.handle(Future.failedFuture("loadPrincipal not implemented"));
     }
-*/
+
     public static void deploy(Class<? extends Verticle> verticle, String configName, String[] args) throws Exception {
         deploy(verticle, configName, args, res -> {});
     }

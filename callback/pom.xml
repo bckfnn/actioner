@@ -27,19 +27,11 @@
             <version>${vertx.version}</version>
         </dependency>
 
-
-
-
-
-
-        <!-- Markdown parser -->
-
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4.version}</version>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-codegen</artifactId>
+            <version>${vertx.version}</version>
         </dependency>
-
 
         <!--Test dependencies -->
         <dependency>

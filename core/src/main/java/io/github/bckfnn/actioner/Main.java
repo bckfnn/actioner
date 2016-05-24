@@ -39,6 +39,8 @@ import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.SharedMetricRegistries;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
@@ -59,6 +61,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.dropwizard.DropwizardMetricsOptions;
 import io.vertx.ext.dropwizard.Match;
+import io.vertx.ext.dropwizard.MatchType;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -120,7 +123,7 @@ public class Main extends AbstractVerticle {
         log.debug("config loaded");
 
         initialize();
-        
+
         boolean develop = config.getBoolean("develop");
         String contextRoot = config.getString("webserver.contextRoot");
 
@@ -159,6 +162,11 @@ public class Main extends AbstractVerticle {
 
         router.route().handler(CookieHandler.create());
         router.route().handler(BodyHandler.create());
+
+        if (config.hasPath("metrics.prometheus.uri")) {
+            MetricRegistry registry = SharedMetricRegistries.getOrCreate(config.getString("metrics.registryName"));
+            router.get(config.getString("metrics.prometheus.uri")).handler(new PrometheusMetricsHandler(registry));
+        }
 
         System.out.println(config.hasPath("webserver") + " " +config.getObject("webserver"));
         if (config.hasPath("webserver.webjars")) {
@@ -243,7 +251,7 @@ public class Main extends AbstractVerticle {
     }
 
     protected void initialize() throws Exception {
-        
+
     }
 /*
     protected Schema makeSchema() throws Exception {
@@ -285,14 +293,15 @@ public class Main extends AbstractVerticle {
         VertxOptions vertxOptions = new VertxOptions();
         vertxOptions.setWorkerPoolSize(config.getInt("workerPoolSize"));
 
-        DropwizardMetricsOptions opt = new DropwizardMetricsOptions();
-        opt.setEnabled(config.getBoolean("metricsEnabled"));
-        opt.setRegistryName("vertxRegistry");
-        opt.addMonitoredHttpServerUri(new Match().setValue(".*"));
-        opt.addMonitoredHttpClientUri(new Match().setValue(".*"));
-        opt.addMonitoredEventBusHandler(new Match().setValue(".*"));
-        vertxOptions.setMetricsOptions(opt);
-
+        if (config.hasPath("metrics")) {
+            DropwizardMetricsOptions opt = new DropwizardMetricsOptions();
+            opt.setEnabled(config.getBoolean("metrics.enabled"));
+            opt.setRegistryName(config.getString("metrics.registryName"));
+            opt.addMonitoredHttpServerUri(new Match().setValue(".*").setType(MatchType.REGEX));
+            opt.addMonitoredHttpClientUri(new Match().setValue(".*").setType(MatchType.REGEX));
+            opt.addMonitoredEventBusHandler(new Match().setValue(".*").setType(MatchType.REGEX));
+            vertxOptions.setMetricsOptions(opt);
+        }
         Vertx vertx = Vertx.vertx(vertxOptions);
 
         /*

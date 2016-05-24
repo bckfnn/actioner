@@ -7,6 +7,7 @@ import java.util.Map;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
+import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Snapshot;
 
@@ -53,6 +54,13 @@ public class PrometheusMetricsHandler implements Handler<RoutingContext> {
                 writer.write(name + "_bucket{le=\"+Inf\"} " + histogram.getValue().getCount()  + " " + now + "\n");
 
                 writer.write(name + "_count " + histogram.getValue().getCount() + " " + now + "\n");
+            };
+
+            for (Map.Entry<String, Meter> meter : registry.getMeters().entrySet()) {
+                //writer.write("# HELP " + counter.getKey() + " xx\n");
+                String name = name(meter.getKey());
+                writer.write("# TYPE " + name + " histogram\n");
+                writer.write(name + "_count " + meter.getValue().getCount() + " " + now + "\n");
             };
 
             ctx.response().end(writer.toString());

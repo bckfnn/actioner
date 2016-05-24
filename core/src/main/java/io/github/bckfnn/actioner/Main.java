@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.SharedMetricRegistries;
+import com.codahale.metrics.logback.InstrumentedAppender;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
@@ -103,7 +104,7 @@ public class Main extends AbstractVerticle {
         } catch (JoranException e) {
             // empty, handled by StatusPrinter
         }
-    }
+     }
 
 
     /**
@@ -163,9 +164,23 @@ public class Main extends AbstractVerticle {
         router.route().handler(CookieHandler.create());
         router.route().handler(BodyHandler.create());
 
-        if (config.hasPath("metrics.prometheus.uri")) {
+        if (config.hasPath("metrics")) {
             MetricRegistry registry = SharedMetricRegistries.getOrCreate(config.getString("metrics.registryName"));
-            router.get(config.getString("metrics.prometheus.uri")).handler(new PrometheusMetricsHandler(registry));
+
+            if (config.hasPath("metrics.logback")) {
+                final LoggerContext factory = (LoggerContext) LoggerFactory.getILoggerFactory();
+                final ch.qos.logback.classic.Logger root = factory.getLogger(Logger.ROOT_LOGGER_NAME);
+System.out.println("enable logback");
+                final InstrumentedAppender metrics = new InstrumentedAppender(registry);
+                metrics.setContext(root.getLoggerContext());
+                metrics.start();
+                root.addAppender(metrics);
+            }
+
+            if (config.hasPath("metrics.prometheus.uri")) {
+                router.get(config.getString("metrics.prometheus.uri")).handler(new PrometheusMetricsHandler(registry));
+            }
+
         }
 
         System.out.println(config.hasPath("webserver") + " " +config.getObject("webserver"));

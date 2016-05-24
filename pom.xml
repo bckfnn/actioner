@@ -50,6 +50,7 @@
 
     <modules>
         <module>core</module>
+        <module>callback</module>
     </modules>
 
     <build>

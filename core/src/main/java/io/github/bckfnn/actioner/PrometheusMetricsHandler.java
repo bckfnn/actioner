@@ -35,7 +35,7 @@ public class PrometheusMetricsHandler implements Handler<RoutingContext> {
                 writer.write("# TYPE " + counter.getKey() + " counter\n");
                 writer.write(counter.getKey() + " " + counter.getValue().getCount() + " " + now + "\n");
             };
-            for (Map.Entry<String, Gauge> gauge : registry.getGauges().entrySet()) {
+            for (@SuppressWarnings("rawtypes") Map.Entry<String, Gauge> gauge : registry.getGauges().entrySet()) {
                 //writer.write("# HELP " + counter.getKey() + " xx\n");
                 writer.write("# TYPE " + gauge.getKey() + " counter\n");
                 writer.write(gauge.getKey() + " " + gauge.getValue().getValue() + " " + now + "\n");

@@ -33,6 +33,12 @@
             <version>${vertx.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-unit</artifactId>
+            <version>${vertx.version}</version>
+        </dependency>
+        
         <!--Test dependencies -->
         <dependency>
             <groupId>junit</groupId>

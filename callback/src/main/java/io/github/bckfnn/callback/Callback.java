@@ -9,6 +9,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.streams.ReadStream;
+import io.vertx.ext.unit.TestContext;
 
 public interface Callback<T> extends Handler<AsyncResult<T>> {
     
@@ -72,6 +73,21 @@ public interface Callback<T> extends Handler<AsyncResult<T>> {
             }
         };
     }
+
+    default <R> Handler<AsyncResult<R>> handler(Consumer<R> handler) {
+        return result -> {
+            if (result.failed()) {
+                fail(result.cause());
+            } else {
+                try {
+                    handler.accept(result.result());
+                } catch (Throwable exc) {
+                    fail(exc);
+                }
+            }
+        };
+    }
+    
     
     /**
      * Convert a Handler&lt;AsyncResult&lt;T&gt;&gt; into a callback
@@ -82,6 +98,13 @@ public interface Callback<T> extends Handler<AsyncResult<T>> {
     public static <R> Callback<R> callback(Handler<AsyncResult<R>> handler) {
         return result -> handler.handle(result);
     }
+    
+    public static <R> Callback<R> assertSuccess(TestContext context, Handler<R> handler) {
+        return Callback.callback(context.asyncAssertSuccess(val -> {
+            handler.handle(val);
+        }));
+    }
+
     
     /**
      * Iterate sequentially over the elements in the list. For each element call the elmHandler.

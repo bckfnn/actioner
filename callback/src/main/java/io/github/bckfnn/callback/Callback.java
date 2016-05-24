@@ -74,9 +74,9 @@ public interface Callback<T> extends Handler<AsyncResult<T>> {
     }
     
     /**
-     * Convert a Handler<AsyncResult<T>> into a callback
-     * @param <R>
-     * @param handler
+     * Convert a Handler&lt;AsyncResult&lt;T&gt;&gt; into a callback
+     * @param <R> type of the returned callback
+     * @param handler the handler to wrap
      * @return a callback
      */
     public static <R> Callback<R> callback(Handler<AsyncResult<R>> handler) {

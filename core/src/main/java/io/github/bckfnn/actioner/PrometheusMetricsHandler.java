@@ -1,16 +1,30 @@
+/*
+ * Copyright 2016 Finn Bock
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.github.bckfnn.actioner;
 
-
+import java.io.IOException;
 import java.io.StringWriter;
-import java.util.Map;
+import java.util.Collections;
+import java.util.List;
 
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.Histogram;
-import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.Snapshot;
 
+import io.prometheus.client.Collector.MetricFamilySamples;
+import io.prometheus.client.dropwizard.DropwizardExports;
+import io.prometheus.client.exporter.common.TextFormat;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.web.RoutingContext;
@@ -26,50 +40,15 @@ public class PrometheusMetricsHandler implements Handler<RoutingContext> {
     public void handle(RoutingContext ctx) {
         ctx.response().setStatusCode(200);
         ctx.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/plain; version=0.0.4; charset=utf-8");
+        List<MetricFamilySamples> metrics = new DropwizardExports(registry).collect();
+
+
         StringWriter writer = new StringWriter();
         try {
-
-            long now = System.currentTimeMillis();
-            for (Map.Entry<String, Counter> counter : registry.getCounters().entrySet()) {
-                //writer.write("# HELP " + counter.getKey() + " xx\n");
-                writer.write("# TYPE " + counter.getKey() + " counter\n");
-                writer.write(counter.getKey() + " " + counter.getValue().getCount() + " " + now + "\n");
-            };
-            for (@SuppressWarnings("rawtypes") Map.Entry<String, Gauge> gauge : registry.getGauges().entrySet()) {
-                //writer.write("# HELP " + counter.getKey() + " xx\n");
-                writer.write("# TYPE " + gauge.getKey() + " counter\n");
-                writer.write(gauge.getKey() + " " + gauge.getValue().getValue() + " " + now + "\n");
-            };
-
-            for (Map.Entry<String, Histogram> histogram : registry.getHistograms().entrySet()) {
-                //writer.write("# HELP " + counter.getKey() + " xx\n");
-                String name = name(histogram.getKey());
-                writer.write("# TYPE " + name + " histogram\n");
-                Snapshot snap = histogram.getValue().getSnapshot();
-                writer.write(name + "_bucket{le=\"0.001\"} " + snap.get999thPercentile()  + " " + now + "\n");
-                writer.write(name + "_bucket{le=\"0.01\"} " + snap.get99thPercentile()  + " " + now + "\n");
-                writer.write(name + "_bucket{le=\"0.02\"} " + snap.get98thPercentile()  + " " + now + "\n");
-                writer.write(name + "_bucket{le=\"0.05\"} " + snap.get95thPercentile() + " " + now + "\n");
-                writer.write(name + "_bucket{le=\"0.25\"} " + snap.get75thPercentile()  + " " + now + "\n");
-                writer.write(name + "_bucket{le=\"+Inf\"} " + histogram.getValue().getCount()  + " " + now + "\n");
-
-                writer.write(name + "_count " + histogram.getValue().getCount() + " " + now + "\n");
-            };
-
-            for (Map.Entry<String, Meter> meter : registry.getMeters().entrySet()) {
-                //writer.write("# HELP " + counter.getKey() + " xx\n");
-                String name = name(meter.getKey());
-                writer.write("# TYPE " + name + " histogram\n");
-                writer.write(name + "_count " + meter.getValue().getCount() + " " + now + "\n");
-            };
-
+            TextFormat.write004(writer, Collections.enumeration(metrics));
             ctx.response().end(writer.toString());
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    private String name(String n) {
-        return n.replace('.', '_').replace(':', '_').replace('-', '_');
     }
 }

@@ -170,7 +170,7 @@ public class Main extends AbstractVerticle {
             if (config.hasPath("metrics.logback")) {
                 final LoggerContext factory = (LoggerContext) LoggerFactory.getILoggerFactory();
                 final ch.qos.logback.classic.Logger root = factory.getLogger(Logger.ROOT_LOGGER_NAME);
-System.out.println("enable logback");
+
                 final InstrumentedAppender metrics = new InstrumentedAppender(registry);
                 metrics.setContext(root.getLoggerContext());
                 metrics.start();
@@ -183,7 +183,6 @@ System.out.println("enable logback");
 
         }
 
-        System.out.println(config.hasPath("webserver") + " " +config.getObject("webserver"));
         if (config.hasPath("webserver.webjars")) {
             router.route().path(contextRoot + config.getString("webserver.webjars.uri")).handler(new WebjarsHandler());
         }

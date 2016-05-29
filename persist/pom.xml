@@ -9,9 +9,9 @@
         <version>0.1.6-SNAPSHOT</version>
     </parent>
 
-    <artifactId>actioner-callback</artifactId>
+    <artifactId>actioner-persist</artifactId>
     <packaging>jar</packaging>
-    <name>actioner - action controller for vertx - callback</name>
+    <name>actioner - action controller for vertx - persist</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -22,10 +22,17 @@
     <dependencies>
 
         <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>actioner-callback</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        
+        <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-core</artifactId>
             <version>${vertx.version}</version>
         </dependency>
+
 
         <dependency>
             <groupId>io.vertx</groupId>
@@ -34,8 +41,15 @@
         </dependency>
 
         <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+            <version>0.5.5</version>
+            <optional>true</optional>
+        </dependency>
+
+       <dependency>
             <groupId>io.vertx</groupId>
-            <artifactId>vertx-unit</artifactId>
+            <artifactId>vertx-mongo-client</artifactId>
             <version>${vertx.version}</version>
         </dependency>
         
@@ -50,7 +64,7 @@
             <artifactId>logback-classic</artifactId>
             <version>1.1.7</version>
         </dependency>
-        
+
         <!--Test dependencies -->
         <dependency>
             <groupId>junit</groupId>
